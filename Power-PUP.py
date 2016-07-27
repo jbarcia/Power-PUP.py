@@ -50,6 +50,11 @@ import string
 import getopt
 from sys import argv
 
+name = "Powershell Universal Programmer"
+shrtname = " (Power-PUP.py)"
+__version__ = "1.0"
+
+
 banner = '''
 
                                   ,.+----.
@@ -90,9 +95,6 @@ banner = '''
 
 '''
 
-name = "Powershell Universal Programmer"
-shrtname = " (Power-PUP.py)"
-version = "1.0"
 
 def write_csfile(ps_script):
 
@@ -126,7 +128,7 @@ def usage():
 
 def main():
 
-    print "\n" + name + " v" + version
+    print "\n" + name + " v" + __version__
     print shrtname + "\n"
     print
     print banner
