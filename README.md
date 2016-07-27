@@ -1,9 +1,9 @@
-# Powershell Universal Programmer
-## (Power-PUP.py)
+## Powershell Universal Programmer
+### (Power-PUP.py)
 Powershell Universal Programmer (Power-PUP.py) is a Windows Python script to compile Windows System.Management.Automation for a powershell alternative.
 
 
-### USAGE:
+#### USAGE:
 ```sh
 Powershell Universal Programmer
 
@@ -12,11 +12,11 @@ Usage: Power-PUP.py -a target_architecture
 -o | --output              - executable output name
 ```
 
-### Examples: 
-* Power-PUP.py -a x86
-* Power-PUP.py -a x64 -o psx64.exe
+#### Examples: 
+* ```Power-PUP.py -a x86```
+* ```Power-PUP.py -a x64 -o psx64.exe```
 
-### Info:
+#### Info:
 ```sh
 #---------------------------------------------------------------#
 #!/bin/python2                                                  #
