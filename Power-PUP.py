@@ -164,9 +164,20 @@ def main():
             else:
                 assert False,"Unhandled Option"
 
-    ps_input = raw_input("Enter the powershell command to execute: \n: ")
-    ps_script = string.replace(ps_input, '\\', '\\\\')
+    ps_input = raw_input("Enter the powershell commands to execute seperated by <ENTER>. \n: ")
+    command = '(' + ps_input + ')'
+
+    while (ps_input.strip()):
+        ps_input = raw_input(': ')
+        if ps_input != '':
+            command += ' -or (' + ps_input + ')'
+
+#    print command
+
+    #(calc.exe) -or ((sleep -s 10) -or (notepad.exe))
+    ps_script = string.replace(command, '\\', '\\\\')
     print
+    
     write_csfile(ps_script)
     compile_exe(arch,out_exe)
     
