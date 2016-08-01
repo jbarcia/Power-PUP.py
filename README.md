@@ -34,7 +34,7 @@ Usage: Power-PUP.py -a target_architecture
 #!/bin/python2                                                  #
 #-Metadata------------------------------------------------------#
 #  Released: 2016-07-26                                         #
-#  Updated: 2016-07-30                                          #
+#  Updated: 2016-07-31                                          #
 #                                                               #
 #-Info----------------------------------------------------------#
 #  Powershell Universal Programmer (Power-PUP.py) is a Windows  #

