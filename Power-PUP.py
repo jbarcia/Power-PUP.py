@@ -51,7 +51,7 @@
 #  - Detect .Net Version                                        #
 #       HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\                  #
 #       NET Framework Setup\NDP\v4\Full\InstallPath             #
-#  - A/V XOR bypass                                             #
+#  - A/V XOR bypass - sep blocks powersploit invoke expression  #
 #                                                               #
 #---------------------------------------------------------------#
 
@@ -359,6 +359,7 @@ def main():
 
     write_csfile(ps_script,comm)
     compile_exe(arch,out_exe)
+    os.remove('temp.cs')
     
     
 main()
