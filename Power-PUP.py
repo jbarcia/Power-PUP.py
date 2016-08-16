@@ -272,6 +272,7 @@ def main():
     payload            = "windows/meterpreter/reverse_https"
     arch               = "x86"
     comm               = False
+    debug              = False
     #ps_script          = ""
     
     # Begin
@@ -291,7 +292,7 @@ def main():
     # read the commandline options
     try:
         # variable: <- variable with argument, no : no argument ex. a
-        opts, args = getopt.getopt(sys.argv[1:],"ha:o:md:sl:p:t:",["help","arch","output","mimi","hostserver","shellcode","lhost","lport","payload"])
+        opts, args = getopt.getopt(sys.argv[1:],"ha:o:md:sl:p:t:",["help","arch","output","mimi","hostserver","shellcode","lhost","lport","payload","debug"])
     except getopt.GetoptError as err:
         print str(err)
         usage()
@@ -321,6 +322,8 @@ def main():
                 payload = a
             elif o in ("-o", "--output"):
                 out_exe = a
+            elif o in ("--debug"):
+                debug = True
             else:
                 assert False,"Unhandled Option"
 
@@ -359,7 +362,8 @@ def main():
 
     write_csfile(ps_script,comm)
     compile_exe(arch,out_exe)
-    os.remove('temp.cs')
+    if debug == False:
+        os.remove('temp.cs')
     
     
 main()
